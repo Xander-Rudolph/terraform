@@ -51,4 +51,4 @@ jobs:
     uses: xander-rudolph/.github/.github/workflows/terraform-publish-branch.yaml@insomnia
     secrets: inherit
     with:
-      working_dir: ${{ matrix.module_path }}     
+      working_dir: ${{ matrix.module_path }}
