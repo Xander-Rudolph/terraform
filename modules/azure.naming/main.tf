@@ -11,3 +11,4 @@
 # output "resource_names" {
 #   value = { for key, name in local.resource_names : key => local.resource_names[key] }
 # }
+
