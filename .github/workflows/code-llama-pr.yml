@@ -20,6 +20,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Install wget
+        run: |
+          apt-get update && apt-get install -y wget
+
       - name: Download LLaMA 3.1-405B model
         run: |
           mkdir llama_model
