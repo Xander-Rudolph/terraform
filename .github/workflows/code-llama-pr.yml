@@ -1,0 +1,45 @@
+name: Call LLaMA 3.1-405B
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  call-llama:
+    runs-on: ubuntu-latest
+    container: ollama/ollama:latest
+
+    services:
+      ollama-model:
+        image: ollama/ollama:latest
+        volumes:
+          - ./llama_model:/app/model
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download LLaMA 3.1-405B model
+        run: |
+          mkdir llama_model
+          wget https://path/to/llama-3.1-405B.tar.gz -O llama_model/llama-3.1-405B.tar.gz
+          tar -xvf llama_model/llama-3.1-405B.tar.gz -C llama_model
+
+      - name: Call LLaMA model with branch contents
+        env:
+          BRANCH_CONTENTS: ${{ github.event.pull_request.body }}
+        run: |
+          ollama --model_path /app/model --model_name llama-3.1-405B --prompt "$BRANCH_CONTENTS" > output.txt
+
+      - name: Comment on PR with results
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.issues.createComment({
+              issue_number: github.context.pullRequest.number,
+              owner: github.context.repo.owner,
+              repo: github.context.repo.repo,
+              body: `LLaMA 3.1-405B response: \n\`\`\`${fs.readFileSync('output.txt', 'utf8')}\`\`\``
+            })
