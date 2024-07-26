@@ -10,19 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
-      # actions: read
-      # checks: read
-      # contents: read
-      # statuses: read
-      # attestations: read
-      # deployments: read
-      # id-token: read
-      # issues: read
-      # discussions: read
-      # packages: read
-      # pages: read
-      # repository-projects: read
-      # security-events: read
     services:
       ollama-model:
         image: ollama/ollama:latest
@@ -65,7 +52,7 @@ jobs:
               $content += "`n"
           }
     
-          echo "content=$content" >> $GITHUB_OUTPUT
+          echo "content=""$content""" >> $GITHUB_OUTPUT
           Write-Warning "Content to send:`n$content"
           
       - name: Send PR to ollama
@@ -74,7 +61,7 @@ jobs:
         run: |
           $Uri = "http://localhost:11434"
           $model = 'llama3.1'
-          $prompt = "TESTING: ${{ steps.details.outputs.content }}"
+          $prompt = "Review this pull request:`n${{ steps.details.outputs.content }}"
           $ErrorActionPreference = 'Inquire'
           $VerbosePreference = 'continue'
 
@@ -121,7 +108,7 @@ jobs:
           $response = Invoke-WebRequest @splat -Uri "$baseUri/generate"
 
           $comment = ($response.content | ConvertFrom-Json).response
-          echo "comment=$comment" >> $GITHUB_OUTPUT
+          echo "comment=""$comment""" >> $GITHUB_OUTPUT
           Write-Verbose "The following will be added as a comment:`n$comment"
                 
       - name: Comment on PR with results
