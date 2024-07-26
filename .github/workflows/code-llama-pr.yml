@@ -55,13 +55,13 @@ jobs:
           Write-Warning "Content to send:`n$content"
           # this isn't setting the output... 
           # echo "CONTENT=$($content | convertto-json)" >> $GITHUB_OUTPUT
-          $content | convertto-json | Out-File (join-path $env:TEMP delta.txt)
+          $content | convertto-json | Out-File delta.txt
           
       - name: debug
         shell: pwsh
         run: |
           write-verbose "This is the content:`n${{ steps.details.outputs.CONTENT }}"
-          write-warning "read from file:`n$((Get-Content (join-path $env:TEMP delta.txt)) | convertfrom-json)"
+          write-warning "read from file:`n$((Get-Content delta.txt) | convertfrom-json)"
 
       - name: Set color
         id: color-selector
