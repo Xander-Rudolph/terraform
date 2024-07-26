@@ -53,11 +53,11 @@ jobs:
           }
     
           Write-Warning "Content to send:`n$content"
-          echo "content=$content" >> $GITHUB_OUTPUT
+          echo "CONTENT=$($content | convertto-json)" >> $GITHUB_OUTPUT
           
       - name: debug
         shell: pwsh
-        run: write-verbose "This is the content:`n${{ steps.details.outputs.content }}"
+        run: write-verbose "This is the content:`n${{ steps.details.outputs.CONTENT }}"
 
       - name: Set color
         id: color-selector
