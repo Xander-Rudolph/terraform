@@ -9,7 +9,20 @@ jobs:
   review-pr:
     runs-on: ubuntu-latest
     permissions:
+      actions: read
+      checks: read
+      contents: read
+      statuses: read
       pull-requests: write
+      # attestations: read|write|none
+      # deployments: read|write|none
+      # id-token: read|write|none
+      # issues: read|write|none
+      # discussions: read|write|none
+      # packages: read|write|none
+      # pages: read|write|none
+      # repository-projects: read|write|none
+      # security-events: read|write|none
     services:
       ollama-model:
         image: ollama/ollama:latest
@@ -34,7 +47,7 @@ jobs:
     
           # Get PR details
           $pr_url = "https://api.github.com/repos/$owner/$repo/pulls/$pr_number"
-          $pr_response = Invoke-RestMethod -Uri $pr_url -Headers $headers
+          $pr_response = (Invoke-RestMethod -Uri $pr_url -Headers $headers).Body
           Write-Warning "Found the details:`n$pr_response"
           
           # Get PR files
