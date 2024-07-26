@@ -119,8 +119,6 @@ jobs:
           script: |
             const fs = require('fs');
             const path = require('path');
-            const core = require('@actions/core');
-            const { context, github } = require('@actions/github');
       
             // Define the file path
             const filePath = 'review.txt';
@@ -152,13 +150,13 @@ jobs:
             const formattedOutput = `
             #### Review Results 📝
             <details><summary>Details</summary>
-      
+            
             \`\`\`
             ${output.replace(/\n/g, '\n')}
             \`\`\`
-      
+            
             </details>
-      
+            
             *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*
             `;
       
