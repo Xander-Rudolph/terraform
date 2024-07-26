@@ -66,17 +66,15 @@ jobs:
           }
     
           echo "content=$content" >> $GITHUB_OUTPUT
-          Write-Verbose "Content to send:`n$content"
+          Write-Warning "Content to send:`n$content"
           
       - name: Send PR to ollama
         shell: pwsh
         id: review
-        env:
-          prompt:  "TESTING: ${{ steps.details.outputs.content }}"
         run: |
           $Uri = "http://localhost:11434"
           $model = 'llama3.1'
-          # $prompt = $prompt
+          $prompt = "TESTING: ${{ steps.details.outputs.content }}"
           $ErrorActionPreference = 'Inquire'
           $VerbosePreference = 'continue'
 
@@ -124,6 +122,7 @@ jobs:
 
           $comment = ($response.content | ConvertFrom-Json).response
           echo "comment=$comment" >> $GITHUB_OUTPUT
+          Write-Verbose "The following will be added as a comment:`n$comment"
                 
       - name: Comment on PR with results
         uses: actions/github-script@v6
