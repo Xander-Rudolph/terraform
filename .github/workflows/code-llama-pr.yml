@@ -52,7 +52,7 @@ jobs:
               $content += "`n"
           }
     
-          Write-Warning "Content to send:`n$content"
+          # Write-Warning "Content to send:`n$content"
           # this isn't setting the output... I think its too big
           # echo "CONTENT=$($content | convertto-json)" >> $GITHUB_OUTPUT
           $content | convertto-json | Out-File delta.txt
@@ -65,10 +65,9 @@ jobs:
           $model = 'llama3.1'
           $deltas = (Get-Content delta.txt) | convertfrom-json
           $prompt = "Review this pull request:`n$deltas"
-          $ErrorActionPreference = 'Inquire'
+          $ErrorActionPreference = 'continue'
           $VerbosePreference = 'continue'
 
-          Write-Verbose "Preparing to run the prompt:`n$prompt"
           Write-Verbose "Test if ollama is responding..."
           Try {
               $testService = invoke-restmethod -uri $Uri -Method get
