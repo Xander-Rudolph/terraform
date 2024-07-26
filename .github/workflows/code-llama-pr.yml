@@ -3,7 +3,7 @@ name: LLM PR Review
 on:
   pull_request:
       types: [opened, synchronize]
-  workflow_call:
+  workflow_dispatch:
 
 permissions:
   pull-requests: write
