@@ -19,7 +19,7 @@ jobs:
       - name: Send PR to ollama
         shell: pwsh
         run: |
-          $Uri = "http://ollama-model:11434"
+          $Uri = "http://localhost:11434"
           $model = 'llama3.1'
           $prompt = '${{ github.event.pull_request.body }}'
           $ErrorActionPreference = 'Inquire'
