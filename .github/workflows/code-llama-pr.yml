@@ -62,8 +62,7 @@ jobs:
           $Uri = "http://localhost:11434"
           $model = 'llama3.1'
           $deltas = Get-Content delta.txt
-          # $prompt = "Review this pull request:`n$deltas"
-          $prompt = "What time is it in New Zealand right now"
+          $prompt = "Review this pull request:`n$deltas"
           $ErrorActionPreference = 'continue'
           $VerbosePreference = 'continue'
 
