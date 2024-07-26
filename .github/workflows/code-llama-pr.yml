@@ -27,6 +27,7 @@ jobs:
           $ErrorActionPreference = 'Inquire'
           $VerbosePreference = 'continue'
 
+          Write-Verbose "Preparing to run the prompt:`n$prompt"
           Write-Verbose "Test if ollama is responding..."
           Try {
               $testService = invoke-restmethod -uri $Uri -Method get
@@ -71,29 +72,39 @@ jobs:
           $comment = ($response.content | ConvertFrom-Json).response
           echo "comment=$comment" >> "$GITHUB_OUTPUT"
           
-      - name: Comment on PR with results
-        uses: actions/github-script@v6
-        if: github.event_name == 'pull_request'
+      # - name: Comment on PR with results
+      #   uses: actions/github-script@v6
+      #   if: github.event_name == 'pull_request'
+      #   with:
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     script: |
+      #       const output = `#### PR review ⚙️\`${{ steps.review.outcome }}\`
+      #       <summary>Summary</summary>
+      #       \`\`\`
+      #       ${{ steps.review.outputs.comment }}
+      #       \`\`\`
+
+            
+      #       *Pusher: @${{ github.actor }}, Workflow: \`${{ github.workflow }}\`*`;
+
+      #       github.rest.issues.createComment({
+      #         issue_number: context.issue.number,
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         body: output
+      #       })
+
+      - name: Comment PR
+        uses: thollander/actions-comment-pull-request@v2
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const output = `#### PR review ⚙️\`${{ steps.review.outcome }}\`
-            <details><summary>Summary</summary>
-            \`\`\`\n
+          message: |
+            ### PR review ⚙️\`${{ steps.review.outcome }}\`
+            <summary>Summary</summary>
+            \`\`\`
             ${{ steps.review.outputs.comment }}
             \`\`\`
-            </details>
             
-            *Pusher: @${{ github.actor }}, Workflow: \`${{ github.workflow }}\`*`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
-            
-      ## the commened out section was generated with ollama... so... humans are still better
+      ## the commened out section below was generated with ollama... so... humans are still better
       # - name: Set up Python
       #   uses: actions/setup-python@v4
       #   with:
