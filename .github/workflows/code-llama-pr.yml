@@ -29,16 +29,24 @@ jobs:
         run: |
           python -m ensurepip
           python -m pip install --upgrade pip
+        env:
+          PATH: /__t/Python/3.12.4/x64/bin:$PATH
 
       - name: Install Hugging Face transformers
         run: pip install transformers
+        env:
+          PATH: /__t/Python/3.12.4/x64/bin:$PATH
 
       - name: Authenticate with Hugging Face
         run: |
           echo "$HUGGINGFACE_TOKEN" | huggingface-cli login --token
+        env:
+          PATH: /__t/Python/3.12.4/x64/bin:$PATH
 
       - name: Download Meta-Llama-3.1-405B model
         run: huggingface-cli repo download meta-llama/Meta-Llama-3.1-405B --local-dir ./llama_models
+        env:
+          PATH: /__t/Python/3.12.4/x64/bin:$PATH
 
       - name: Call LLaMA model with branch contents
         env:
