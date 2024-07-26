@@ -26,4 +26,6 @@ jobs:
           huggingface-cli login --token ${{ secrets.HUGGING_FACE_TOKEN }}
 
       - name: Download Meta-Llama-3.1-405B model
-        run: huggingface-cli repo download meta-llama/Meta-Llama-3.1-405B --local-dir ./llama_models
+        run: |
+          git lfs install
+          git clone https://huggingface.co/meta-llama/Meta-Llama-3.1-405B ./llama_models
