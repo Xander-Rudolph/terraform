@@ -119,6 +119,8 @@ jobs:
           script: |
             const fs = require('fs');
             const path = require('path');
+            const core = require('@actions/core');
+            const { context, github } = require('@actions/github');
       
             // Define the file path
             const filePath = 'review.txt';
@@ -142,12 +144,23 @@ jobs:
               }
             });
       
-            // Log the response to check the structure
-            console.log(response);
-      
             // Ensure data is defined
             const comments = response.data || [];
             const existingComment = comments.find(comment => comment.body.startsWith('<!-- pr-review -->'));
+      
+            // Format the output
+            const formattedOutput = `
+            #### Review Results 📝
+            <details><summary>Details</summary>
+      
+            \`\`\`
+            ${output.replace(/\n/g, '\n')}
+            \`\`\`
+      
+            </details>
+      
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*
+            `;
       
             if (existingComment) {
               // Update existing comment
@@ -155,7 +168,7 @@ jobs:
                 comment_id: existingComment.id,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: '<!-- pr-review -->\n' + output
+                body: `<!-- pr-review -->\n${formattedOutput}`
               });
             } else {
               // Create new comment
@@ -163,7 +176,7 @@ jobs:
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: '<!-- pr-review -->\n' + output
+                body: `<!-- pr-review -->\n${formattedOutput}`
               });
             }
 
