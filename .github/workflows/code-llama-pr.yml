@@ -2,8 +2,6 @@ name: AI Pull Review
 
 on:
   pull_request:
-    branches:
-      - main
 
 jobs:
   review-pr:
