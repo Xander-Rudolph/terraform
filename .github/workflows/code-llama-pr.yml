@@ -9,20 +9,20 @@ jobs:
   review-pr:
     runs-on: ubuntu-latest
     permissions:
+      pull-requests: write
       actions: read
       checks: read
       contents: read
       statuses: read
-      pull-requests: write
-      # attestations: read|write|none
-      # deployments: read|write|none
-      # id-token: read|write|none
-      # issues: read|write|none
-      # discussions: read|write|none
-      # packages: read|write|none
-      # pages: read|write|none
-      # repository-projects: read|write|none
-      # security-events: read|write|none
+      attestations: read
+      deployments: read
+      id-token: read
+      issues: read
+      discussions: read
+      packages: read
+      pages: read
+      repository-projects: read
+      security-events: read
     services:
       ollama-model:
         image: ollama/ollama:latest
@@ -47,11 +47,12 @@ jobs:
     
           # Get PR details
           $pr_url = "https://api.github.com/repos/$owner/$repo/pulls/$pr_number"
-          $pr_response = (Invoke-RestMethod -Uri $pr_url -Headers $headers).Body
-          Write-Warning "Found the details:`n$pr_response"
+          $pr_response = Invoke-RestMethod -Uri $pr_url -Headers $headers
+          $pr_body = $pr_response.body
+          Write-Warning "Found the details:`n$pr_body"
           
           # Get PR files
-          $files_url = "https://api.github.com/repos/$owner/$repo/pulls/$pr_number/files"
+          $files_url = "$($pr_response.url)/files"
           $files_response = Invoke-RestMethod -Uri $files_url -Headers $headers
           Write-Warning "Found the files:`n$files_response"
     
