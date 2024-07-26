@@ -35,12 +35,12 @@ jobs:
           # Get PR details
           $pr_url = "https://api.github.com/repos/$owner/$repo/pulls/$pr_number"
           $pr_response = Invoke-RestMethod -Uri $pr_url -Headers $headers
-          $pr_data = $pr_response | ConvertTo-Json -Depth 100
-    
+          Write-Warning "Found the details:`n$pr_response"
+          
           # Get PR files
           $files_url = "https://api.github.com/repos/$owner/$repo/pulls/$pr_number/files"
           $files_response = Invoke-RestMethod -Uri $files_url -Headers $headers
-          $files_data = $files_response | ConvertTo-Json -Depth 100
+          Write-Warning "Found the files:`n$files_response"
     
           # Format the content for ChatGPT
           $content = "PR Details:`n"
