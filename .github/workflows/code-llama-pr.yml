@@ -72,7 +72,7 @@ jobs:
         shell: pwsh
         id: review
         env:
-          prompt:  ${{ steps.details.outputs.content }}'
+          prompt:  "TESTING: ${{ steps.details.outputs.content }}"
         run: |
           $Uri = "http://localhost:11434"
           $model = 'llama3.1'
