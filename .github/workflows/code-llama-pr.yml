@@ -2,10 +2,13 @@ name: AI Pull Review
 
 on:
   pull_request:
+  workflow_call:
 
 jobs:
   review-pr:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     services:
       ollama-model:
         image: ollama/ollama:latest
@@ -65,7 +68,7 @@ jobs:
           $splat.Body = $body | ConvertTo-Json
           $response = Invoke-WebRequest @splat -Uri "$baseUri/generate"
 
-          ($response.content | ConvertFrom-Json).response  > output.txt 
+          Write-Host ($response.content | ConvertFrom-Json).response
           
       - name: Comment on PR with results
         uses: actions/github-script@v6
