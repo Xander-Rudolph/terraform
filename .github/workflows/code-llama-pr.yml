@@ -52,27 +52,18 @@ jobs:
               $content += "`n"
           }
     
-          # Write-Warning "Content to send:`n$content"
-          # this isn't setting the output... I think its too big
-          # echo "CONTENT=$($content | convertto-json)" >> $GITHUB_OUTPUT
+          # using output vars isn't working... write files instead
           $content | convertto-json | Out-File delta.txt
-          $fullPath = (Get-Item delta.txt).FullPath
-          echo "outputFile=$fullPath" >> "$GITHUB_OUTPUT"
-                
-      - name: DEBUG
-        shell: pwsh
-        run: |
-          write-warning "file named:`n${{ steps.details.outputs.outputFile }}"
-          
+
       - name: Send PR to ollama
         shell: pwsh
         id: review
         run: |
           $Uri = "http://localhost:11434"
           $model = 'llama3.1'
-          $deltas = Get-Content ${{ steps.details.outputs.outputFile }}
-          $prompt = "Review this pull request:`n$deltas"
-          # $prompt = "What time is it in New Zealand right now"
+          $deltas = Get-Content delta.txt
+          # $prompt = "Review this pull request:`n$deltas"
+          $prompt = "What time is it in New Zealand right now"
           $ErrorActionPreference = 'continue'
           $VerbosePreference = 'continue'
 
@@ -119,14 +110,6 @@ jobs:
 
           $comment = ($response.content | ConvertFrom-Json).response
           $comment | convertto-json | Out-File review.txt
-          echo "outputFile=$((Get-Item review.txt).FullPath)" >> "$GITHUB_OUTPUT"
-          $fullPath = (Get-Item delta.txt).FullPath
-          echo "outputFile=$fullPath" >> "$GITHUB_OUTPUT"
-          
-      - name: DEBUG
-        shell: pwsh
-        run: |
-          write-warning "file named:`n${{ steps.review.outputs.outputFile }}"        
           
       - name: Comment on PR with results
         uses: actions/github-script@v6
@@ -138,7 +121,7 @@ jobs:
             const path = require('path');
       
             // Define the file path
-            const filePath = '${{ steps.review.outputs.outputFile }}';
+            const filePath = 'review.txt';
       
             // Read the content from the file
             let output;
