@@ -5,7 +5,11 @@ on:
 
 jobs:
   dlmodel:
+    runs-on: ubuntu-latest
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -18,8 +22,10 @@ jobs:
           python -m pip install transformers
 
       - name: Authenticate with Hugging Face
+        env:
+          HUGGING_FACE_TOKEN: ${{ secrets.HUGGING_FACE_TOKEN }}
         run: |
-          huggingface-cli login --token ${{ secrets.HUGGING_FACE_TOKEN }}
+          echo "${HUGGING_FACE_TOKEN}" | huggingface-cli login --token
 
       - name: Download Meta-Llama-3.1-405B model
         run: huggingface-cli repo download meta-llama/Meta-Llama-3.1-405B --local-dir ./llama_models
