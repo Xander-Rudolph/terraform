@@ -20,12 +20,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Download Hugging Face Model
-        uses: huggingface/hub-actions/download-model@main
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          model-id: "llama-3.1-405B"
-          repo-token: ${{ secrets.HUGGING_FACE_TOKEN }}
-          output-dir: ./llama_model
+          python-version: '3.x'
+
+      - name: Install Hugging Face CLI
+        run: pip install huggingface-cli
+
+      - name: Authenticate with Hugging Face
+        run: huggingface-cli login
+        env:
+          HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
+
+      - name: Download Meta-Llama-3.1-405B model
+        run: huggingface-cli repo download meta-llama/Meta-Llama-3.1-405B --local-dir ./llama_models
 
       - name: Call LLaMA model with branch contents
         env:
