@@ -68,7 +68,8 @@ jobs:
           $splat.Body = $body | ConvertTo-Json
           $response = Invoke-WebRequest @splat -Uri "$baseUri/generate"
 
-          Write-Host ($response.content | ConvertFrom-Json).response
+          $comment = ($response.content | ConvertFrom-Json).response
+          echo "comment=$comment >> "$GITHUB_OUTPUT"
           
       - name: Comment on PR with results
         uses: actions/github-script@v6
@@ -79,10 +80,11 @@ jobs:
             const output = `#### PR review ⚙️\`${{ steps.review.outcome }}\`
             <details><summary>Summary</summary>
             \`\`\`\n
-            ${{ steps.review.outputs.stdout }}
+            ${{ steps.review.outputs.comment }}
             \`\`\`
             </details>
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
+            
+            *Pusher: @${{ github.actor }}, Workflow: \`${{ github.workflow }}\`*`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
