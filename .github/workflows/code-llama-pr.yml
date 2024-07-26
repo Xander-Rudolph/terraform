@@ -110,7 +110,7 @@ jobs:
 
           $comment = ($response.content | ConvertFrom-Json).response
           $comment | convertto-json | Out-File review.txt
-          
+                
       - name: Comment on PR with results
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
@@ -118,7 +118,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const path = require('path');
       
             // Define the file path
             const filePath = 'review.txt';
@@ -131,6 +130,9 @@ jobs:
               core.setFailed(`Failed to read the comment file: ${error.message}`);
               return;
             }
+      
+            // Replace newline characters with actual newlines
+            output = output.replace(/\\n/g, '\n');
       
             // Fetch existing comments
             const response = await github.rest.issues.listComments({
@@ -151,9 +153,7 @@ jobs:
             #### Review Results 📝
             <details><summary>Details</summary>
             
-            \`\`\`
-            ${output.replace(/\n/g, '\n')}
-            \`\`\`
+            ${output}
             
             </details>
             
