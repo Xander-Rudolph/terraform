@@ -97,12 +97,14 @@ jobs:
       - name: Comment PR
         uses: thollander/actions-comment-pull-request@v2
         with:
+          comment_tag: Review-Summary
+          reactions: computer
           message: |
-            ### PR review ⚙️\`${{ steps.review.outcome }}\`
+            ### PR review ⚙️`${{ steps.review.outcome }}`
             <summary>Summary</summary>
-            \`\`\`
+            ```
             ${{ steps.review.outputs.comment }}
-            \`\`\`
+            ```
             
       ## the commened out section below was generated with ollama... so... humans are still better
       # - name: Set up Python
