@@ -14,15 +14,15 @@ jobs:
       checks: read
       contents: read
       statuses: read
-      attestations: read
-      deployments: read
-      id-token: read
-      issues: read
-      discussions: read
-      packages: read
-      pages: read
-      repository-projects: read
-      security-events: read
+      # attestations: read
+      # deployments: read
+      # id-token: read
+      # issues: read
+      # discussions: read
+      # packages: read
+      # pages: read
+      # repository-projects: read
+      # security-events: read
     services:
       ollama-model:
         image: ollama/ollama:latest
