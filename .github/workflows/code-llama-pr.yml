@@ -25,13 +25,17 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install Hugging Face CLI
-        run: pip install huggingface-cli
+      - name: Install pip
+        run: |
+          python -m ensurepip
+          python -m pip install --upgrade pip
+
+      - name: Install Hugging Face transformers
+        run: pip install transformers
 
       - name: Authenticate with Hugging Face
-        run: huggingface-cli login
-        env:
-          HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
+        run: |
+          echo "$HUGGINGFACE_TOKEN" | huggingface-cli login --token
 
       - name: Download Meta-Llama-3.1-405B model
         run: huggingface-cli repo download meta-llama/Meta-Llama-3.1-405B --local-dir ./llama_models
