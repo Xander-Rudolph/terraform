@@ -1,4 +1,4 @@
-name: AI Pull Review
+name: LLM PR Review
 
 on:
   pull_request:
@@ -13,8 +13,8 @@ jobs:
     services:
       ollama-model:
         image: ollama/ollama:latest
-        volumes:
-          - ./llama_model:/app/model
+        # volumes:
+        #   - ./llama_model:/app/model
         ports:
           - 11434:11434
     steps:
@@ -168,53 +168,4 @@ jobs:
                 body: '<!-- pr-review -->\n' + output
               });
             }
-      # - name: Comment PR
-      #   uses: thollander/actions-comment-pull-request@v2
-      #   with:
-      #     comment_tag: Review-Summary
-      #     reactions: computer
-      #     message: |
-      #       ### PR review ⚙️`${{ steps.review.outcome }}`
-      #       <summary>Summary</summary>
-      #       ```
-      #       ${{ steps.review.outputs.comment }}
-      #       ```
-            
-      ## the commened out section below was generated with ollama... so... humans are still better
-      # - name: Set up Python
-      #   uses: actions/setup-python@v4
-      #   with:
-      #     python-version: '3.x'
-
-      # - name: Install Hugging Face transformers
-      #   run: |
-      #     python -m ensurepip
-      #     python -m pip install --upgrade pip
-      #     python -m pip install transformers
-
-      # - name: Authenticate with Hugging Face
-      #   run: |
-      #     huggingface-cli login --token ${{ secrets.HUGGING_FACE_TOKEN }}
-
-      # - name: Download Meta-Llama-3.1-405B model
-      #   run: huggingface-cli repo download meta-llama/Meta-Llama-3.1-405B --local-dir ./llama_models
-
-      # - name: Call LLaMA model with branch contents
-      #   env:
-      #     BRANCH_CONTENTS: ${{ github.event.pull_request.body }}
-      #   run: |
-      #     ollama --model_path ./llama_model --model_name llama-3.1-405B --prompt "$BRANCH_CONTENTS" > output.txt
-
-      # - name: Comment on PR with results
-      #   uses: actions/github-script@v6
-      #   with:
-      #     github-token: ${{ secrets.GITHUB_TOKEN }}
-      #     script: |
-      #       github.issues.createComment({
-      #         issue_number: github.context.pullRequest.number,
-      #         owner: github.context.repo.owner,
-      #         repo: github.context.repo.repo,
-      #         body: `LLaMA 3.1-405B response: \n\`\`\`${fs.readFileSync('output.txt', 'utf8')}\`\`\``
-      #       })
-
 
