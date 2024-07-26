@@ -67,7 +67,21 @@ jobs:
           $response = Invoke-WebRequest @splat -Uri "$baseUri/generate"
 
           ($response.content | ConvertFrom-Json).response  > output.txt 
-
+          
+      - name: Comment on PR with results
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ inputs.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const output = fs.readFileSync('output.txt', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: github.context.issue.number,
+              owner: github.context.repo.owner,
+              repo: github.context.repo.repo,
+              body: `Ollama says: \n\`\`\`${output}\`\`\``
+            });            
+      ## the commened out section was generated with ollama... so... humans are still better
       # - name: Set up Python
       #   uses: actions/setup-python@v4
       #   with:
@@ -92,14 +106,16 @@ jobs:
       #   run: |
       #     ollama --model_path ./llama_model --model_name llama-3.1-405B --prompt "$BRANCH_CONTENTS" > output.txt
 
-      - name: Comment on PR with results
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            github.issues.createComment({
-              issue_number: github.context.pullRequest.number,
-              owner: github.context.repo.owner,
-              repo: github.context.repo.repo,
-              body: `LLaMA 3.1-405B response: \n\`\`\`${fs.readFileSync('output.txt', 'utf8')}\`\`\``
-            })
+      # - name: Comment on PR with results
+      #   uses: actions/github-script@v6
+      #   with:
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     script: |
+      #       github.issues.createComment({
+      #         issue_number: github.context.pullRequest.number,
+      #         owner: github.context.repo.owner,
+      #         repo: github.context.repo.repo,
+      #         body: `LLaMA 3.1-405B response: \n\`\`\`${fs.readFileSync('output.txt', 'utf8')}\`\`\``
+      #       })
+
+
