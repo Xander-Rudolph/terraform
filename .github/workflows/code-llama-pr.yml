@@ -6,43 +6,91 @@ on:
       - main
 
 jobs:
-  call-llama:
+  ollama:
     runs-on: ubuntu-latest
-    container: ollama/ollama:latest
-
     services:
       ollama-model:
         image: ollama/ollama:latest
         volumes:
           - ./llama_model:/app/model
-
+        ports:
+          - 11434:11434
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install Hugging Face transformers
+      - name: Send PR to ollama
+        shell: pwsh
         run: |
-          python -m ensurepip
-          python -m pip install --upgrade pip
-          python -m pip install transformers
+          $Uri = "http://ollama-model:11434"
+          $model = 'llama3.1'
+          $prompt = '${{ github.event.pull_request.body }}'
+          $ErrorActionPreference = 'Inquire'
+          $VerbosePreference = 'continue'
 
-      - name: Authenticate with Hugging Face
-        run: |
-          huggingface-cli login --token ${{ secrets.HUGGING_FACE_TOKEN }}
+          Write-Verbose "Test if ollama is responding..."
+          Try {
+              $testService = invoke-restmethod -uri $Uri -Method get
+          }
+          catch {
+              Write-Error "Ollama didn't respond...`n$($_.exception)"
+              exit
+          }
+          Write-Verbose "Response:`n$testService"
 
-      - name: Download Meta-Llama-3.1-405B model
-        run: huggingface-cli repo download meta-llama/Meta-Llama-3.1-405B --local-dir ./llama_models
+          # format URI for API calls
+          $baseUri = "$Uri/api"
 
-      - name: Call LLaMA model with branch contents
-        env:
-          BRANCH_CONTENTS: ${{ github.event.pull_request.body }}
-        run: |
-          ollama --model_path ./llama_model --model_name llama-3.1-405B --prompt "$BRANCH_CONTENTS" > output.txt
+          # Declare default splat
+          $splat = @{
+              Headers = @{
+                  "Content-Type" = "application/json"
+              }
+              Method = "Post"
+          }
+
+          $splat.body = @{
+              name = $model
+          } | ConvertTo-Json
+          Try {
+              $pullModel = Invoke-WebRequest @splat -Uri "$baseUri/pull"
+          }
+          catch {
+              Write-Error "Failed to pull model...`n$($_.exception)"
+              exit
+          }
+
+          # Use Invoke-WebRequest to send the question
+          $body = @{
+              prompt = $prompt
+              stream = $false
+              model = $model
+          }
+          $splat.Body = $body | ConvertTo-Json
+          $response = Invoke-WebRequest @splat -Uri "$baseUri/generate"
+
+          ($response.content | ConvertFrom-Json).response  > output.txt 
+
+      # - name: Set up Python
+      #   uses: actions/setup-python@v4
+      #   with:
+      #     python-version: '3.x'
+
+      # - name: Install Hugging Face transformers
+      #   run: |
+      #     python -m ensurepip
+      #     python -m pip install --upgrade pip
+      #     python -m pip install transformers
+
+      # - name: Authenticate with Hugging Face
+      #   run: |
+      #     huggingface-cli login --token ${{ secrets.HUGGING_FACE_TOKEN }}
+
+      # - name: Download Meta-Llama-3.1-405B model
+      #   run: huggingface-cli repo download meta-llama/Meta-Llama-3.1-405B --local-dir ./llama_models
+
+      # - name: Call LLaMA model with branch contents
+      #   env:
+      #     BRANCH_CONTENTS: ${{ github.event.pull_request.body }}
+      #   run: |
+      #     ollama --model_path ./llama_model --model_name llama-3.1-405B --prompt "$BRANCH_CONTENTS" > output.txt
 
       - name: Comment on PR with results
         uses: actions/github-script@v6
