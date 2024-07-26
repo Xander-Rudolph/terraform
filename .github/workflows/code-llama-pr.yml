@@ -115,6 +115,11 @@ jobs:
           $comment | convertto-json | Out-File review.txt
           echo "outputFile=$((Get-Item review.txt).FullPath)" >> "$GITHUB_OUTPUT"
                 
+      - name: DEBUG
+        shell: pwsh
+        run: |
+          write-warning "file named:`n${{ steps.review.outputs.outputFile }}"
+        
       - name: Comment on PR with results
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
