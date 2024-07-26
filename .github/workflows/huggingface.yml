@@ -7,25 +7,26 @@ jobs:
   dlmodel:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
+      # - name: Check out repository
+      #   uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
+      # - name: Set up Python
+      #   uses: actions/setup-python@v4
+      #   with:
+      #     python-version: '3.x'
 
-      - name: Install Hugging Face transformers
-        run: |
-          python -m ensurepip
-          python -m pip install --upgrade pip
-          python -m pip install transformers
+      # - name: Install Hugging Face transformers
+      #   run: |
+      #     python -m ensurepip
+      #     python -m pip install --upgrade pip
+      #     python -m pip install transformers
 
-      - name: Authenticate with Hugging Face
-        run: |
-          huggingface-cli login --token ${{ secrets.HUGGING_FACE_TOKEN }}
+      # - name: Authenticate with Hugging Face
+      #   run: |
+      #     huggingface-cli login --token ${{ secrets.HUGGING_FACE_TOKEN }}
 
       - name: Download Meta-Llama-3.1-405B model
         run: |
+          git config --global http.https://huggingface.co/.extraheader "Authorization: Bearer ${{ secrets.HUGGING_FACE_TOKEN }}"
           git lfs install
           git clone https://huggingface.co/meta-llama/Meta-Llama-3.1-405B ./llama_models
