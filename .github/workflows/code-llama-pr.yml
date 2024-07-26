@@ -53,10 +53,9 @@ jobs:
           
           # Get PR files
           $files_url = "$($pr_response.url)/files"
-          $files_response = Invoke-RestMethod -Uri $files_url -Headers $headers
+          $files_response = Invoke-RestMethod -Uri $files_url -Headers $headers -verbose
           Write-Warning "Found the files:`n$files_response"
     
-          # Format the content for ChatGPT
           $content = "PR Details:`n"
           $content += "Title: $($pr_response.title)`n"
           $content += "Author: $($pr_response.user.login)`n"
