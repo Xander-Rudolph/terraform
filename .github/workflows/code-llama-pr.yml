@@ -56,6 +56,7 @@ jobs:
           }
     
           echo "content=$content" >> "$GITHUB_OUTPUT"          
+          Write-warning "Content to send:`n$prompt"
           
       - name: Send PR to ollama
         shell: pwsh
