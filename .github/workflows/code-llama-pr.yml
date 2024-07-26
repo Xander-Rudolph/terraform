@@ -56,7 +56,13 @@ jobs:
           # this isn't setting the output... I think its too big
           # echo "CONTENT=$($content | convertto-json)" >> $GITHUB_OUTPUT
           $content | convertto-json | Out-File delta.txt
-          echo "outputFile=$((Get-Item delta.txt).FullPath)" >> "$GITHUB_OUTPUT"
+          $fullPath = (Get-Item delta.txt).FullPath
+          echo "outputFile=$fullPath" >> "$GITHUB_OUTPUT"
+                
+      - name: DEBUG
+        shell: pwsh
+        run: |
+          write-warning "file named:`n${{ steps.details.outputs.outputFile }}"
           
       - name: Send PR to ollama
         shell: pwsh
@@ -114,12 +120,14 @@ jobs:
           $comment = ($response.content | ConvertFrom-Json).response
           $comment | convertto-json | Out-File review.txt
           echo "outputFile=$((Get-Item review.txt).FullPath)" >> "$GITHUB_OUTPUT"
-                
+          $fullPath = (Get-Item delta.txt).FullPath
+          echo "outputFile=$fullPath" >> "$GITHUB_OUTPUT"
+          
       - name: DEBUG
         shell: pwsh
         run: |
-          write-warning "file named:`n${{ steps.review.outputs.outputFile }}"
-        
+          write-warning "file named:`n${{ steps.review.outputs.outputFile }}"        
+          
       - name: Comment on PR with results
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
