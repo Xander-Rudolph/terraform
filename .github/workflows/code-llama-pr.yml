@@ -53,23 +53,9 @@ jobs:
           }
     
           Write-Warning "Content to send:`n$content"
-          # this isn't setting the output... 
+          # this isn't setting the output... I think its too big
           # echo "CONTENT=$($content | convertto-json)" >> $GITHUB_OUTPUT
           $content | convertto-json | Out-File delta.txt
-          
-      - name: debug
-        shell: pwsh
-        run: |
-          write-verbose "This is the content:`n${{ steps.details.outputs.CONTENT }}"
-          write-warning "read from file:`n$((Get-Content delta.txt) | convertfrom-json)"
-
-      - name: Set color
-        id: color-selector
-        run: echo "SELECTED_COLOR=green" >> "$GITHUB_OUTPUT"
-      - name: Get color
-        env:
-          SELECTED_COLOR: ${{ steps.color-selector.outputs.SELECTED_COLOR }}
-        run: echo "The selected color is $SELECTED_COLOR"        
           
       - name: Send PR to ollama
         shell: pwsh
@@ -77,7 +63,8 @@ jobs:
         run: |
           $Uri = "http://localhost:11434"
           $model = 'llama3.1'
-          $prompt = "Review this pull request:`n${{ steps.details.outputs.content }}"
+          $deltas = (Get-Content delta.txt) | convertfrom-json
+          $prompt = "Review this pull request:`n$deltas"
           $ErrorActionPreference = 'Inquire'
           $VerbosePreference = 'continue'
 
@@ -124,8 +111,7 @@ jobs:
           $response = Invoke-WebRequest @splat -Uri "$baseUri/generate"
 
           $comment = ($response.content | ConvertFrom-Json).response
-          echo "comment=""$comment""" >> $GITHUB_OUTPUT
-          Write-Verbose "The following will be added as a comment:`n$comment"
+          $comment | convertto-json | Out-File review.txt
                 
       - name: Comment on PR with results
         uses: actions/github-script@v6
@@ -133,13 +119,20 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### PR review ⚙️\`${{ steps.review.outcome }}\`
-            <summary>Summary</summary>
-            \`\`\`
-            ${{ steps.review.outputs.comment }}
-            \`\`\`
-        
-            *Pusher: @${{ github.actor }}, Workflow: \`${{ github.workflow }}\`*`;
+            const fs = require('fs');
+            const path = require('path');
+      
+            // Define the file path
+            const filePath = path.join(process.env.GITHUB_WORKSPACE, 'review.txt');
+      
+            // Read the content from the file
+            let output;
+            try {
+              output = fs.readFileSync(filePath, 'utf8');
+            } catch (error) {
+              core.setFailed(`Failed to read the comment file: ${error.message}`);
+              return;
+            }
       
             // Fetch existing comments
             const response = await github.rest.issues.listComments({
@@ -150,7 +143,7 @@ jobs:
                 accept: 'application/vnd.github.v3+json'
               }
             });
-            
+      
             // Log the response to check the structure
             console.log(response);
       
