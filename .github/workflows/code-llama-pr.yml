@@ -20,21 +20,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install wget
-        run: |
-          apt-get update && apt-get install -y wget
-
-      - name: Download LLaMA 3.1-405B model
-        run: |
-          mkdir llama_model
-          wget https://path/to/llama-3.1-405B.tar.gz -O llama_model/llama-3.1-405B.tar.gz
-          tar -xvf llama_model/llama-3.1-405B.tar.gz -C llama_model
+      - name: Download Hugging Face Model
+        uses: huggingface/hub-actions/download-model@main
+        with:
+          model-id: "llama-3.1-405B"
+          repo-token: ${{ secrets.HUGGING_FACE_TOKEN }}
+          output-dir: ./llama_model
 
       - name: Call LLaMA model with branch contents
         env:
           BRANCH_CONTENTS: ${{ github.event.pull_request.body }}
         run: |
-          ollama --model_path /app/model --model_name llama-3.1-405B --prompt "$BRANCH_CONTENTS" > output.txt
+          ollama --model_path ./llama_model --model_name llama-3.1-405B --prompt "$BRANCH_CONTENTS" > output.txt
 
       - name: Comment on PR with results
         uses: actions/github-script@v6
