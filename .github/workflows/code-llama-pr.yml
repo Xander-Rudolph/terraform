@@ -2,6 +2,7 @@ name: AI Pull Review
 
 on:
   pull_request:
+      types: [opened, synchronize]
   workflow_call:
 
 jobs:
@@ -17,13 +18,52 @@ jobs:
         ports:
           - 11434:11434
     steps:
+      - name: Get PR details
+        shell: pwsh
+        id: details
+        run: |
+          $token = "${{ secrets.GITHUB_TOKEN }}"
+          $owner = "${{ github.repository_owner }}"
+          $repo = "${{ github.event.repository.name }}"
+          $pr_number = "${{ github.event.number }}"
+    
+          $headers = @{
+              Authorization = "token $token"
+              Accept        = "application/vnd.github.v3+json"
+          }
+    
+          # Get PR details
+          $pr_url = "https://api.github.com/repos/$owner/$repo/pulls/$pr_number"
+          $pr_response = Invoke-RestMethod -Uri $pr_url -Headers $headers
+          $pr_data = $pr_response | ConvertTo-Json -Depth 100
+    
+          # Get PR files
+          $files_url = "https://api.github.com/repos/$owner/$repo/pulls/$pr_number/files"
+          $files_response = Invoke-RestMethod -Uri $files_url -Headers $headers
+          $files_data = $files_response | ConvertTo-Json -Depth 100
+    
+          # Format the content for ChatGPT
+          $content = "PR Details:`n"
+          $content += "Title: $($pr_response.title)`n"
+          $content += "Author: $($pr_response.user.login)`n"
+          $content += "Description: $($pr_response.body)`n"
+          $content += "`nFiles:`n"
+          foreach ($file in $files_response) {
+              $content += "Filename: $($file.filename)`n"
+              $content += "Changes: $($file.changes)`n"
+              $content += "Patch:`n$($file.patch)`n"
+              $content += "`n"
+          }
+    
+          echo "content=$content" >> "$GITHUB_OUTPUT"          
+          
       - name: Send PR to ollama
         shell: pwsh
         id: review
         run: |
           $Uri = "http://localhost:11434"
           $model = 'llama3.1'
-          $prompt = '${{ github.event.pull_request.body }}'
+          $prompt = '${{ steps.details.outputs.content }}'
           $ErrorActionPreference = 'Inquire'
           $VerbosePreference = 'continue'
 
