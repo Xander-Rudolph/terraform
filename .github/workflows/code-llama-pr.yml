@@ -112,40 +112,60 @@ jobs:
 
           $comment = ($response.content | ConvertFrom-Json).response
           echo "comment=$comment" >> "$GITHUB_OUTPUT"
-          
-      # - name: Comment on PR with results
-      #   uses: actions/github-script@v6
-      #   if: github.event_name == 'pull_request'
-      #   with:
-      #     github-token: ${{ secrets.GITHUB_TOKEN }}
-      #     script: |
-      #       const output = `#### PR review ⚙️\`${{ steps.review.outcome }}\`
-      #       <summary>Summary</summary>
-      #       \`\`\`
-      #       ${{ steps.review.outputs.comment }}
-      #       \`\`\`
-
-            
-      #       *Pusher: @${{ github.actor }}, Workflow: \`${{ github.workflow }}\`*`;
-
-      #       github.rest.issues.createComment({
-      #         issue_number: context.issue.number,
-      #         owner: context.repo.owner,
-      #         repo: context.repo.repo,
-      #         body: output
-      #       })
-
-      - name: Comment PR
-        uses: thollander/actions-comment-pull-request@v2
+                
+      - name: Comment on PR with results
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
         with:
-          comment_tag: Review-Summary
-          reactions: computer
-          message: |
-            ### PR review ⚙️`${{ steps.review.outcome }}`
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### PR review ⚙️\`${{ steps.review.outcome }}\`
             <summary>Summary</summary>
-            ```
+            \`\`\`
             ${{ steps.review.outputs.comment }}
-            ```
+            \`\`\`
+      
+            
+            *Pusher: @${{ github.actor }}, Workflow: \`${{ github.workflow }}\`*`;
+      
+            // Check if comment already exists with tag
+            const existingComment = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              headers: {
+                accept: 'application/vnd.github.v3+json'
+              }
+            }).data.find(comment => comment.body.startsWith('<!-- pr-review -->'));
+      
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                comment_id: existingComment.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: '<!-- pr-review -->\n' + output
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: '<!-- pr-review -->\n' + output
+              });
+            }
+      # - name: Comment PR
+      #   uses: thollander/actions-comment-pull-request@v2
+      #   with:
+      #     comment_tag: Review-Summary
+      #     reactions: computer
+      #     message: |
+      #       ### PR review ⚙️`${{ steps.review.outcome }}`
+      #       <summary>Summary</summary>
+      #       ```
+      #       ${{ steps.review.outputs.comment }}
+      #       ```
             
       ## the commened out section below was generated with ollama... so... humans are still better
       # - name: Set up Python
