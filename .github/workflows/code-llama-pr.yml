@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
-      actions: read
-      checks: read
-      contents: read
-      statuses: read
+      # actions: read
+      # checks: read
+      # contents: read
+      # statuses: read
       # attestations: read
       # deployments: read
       # id-token: read
