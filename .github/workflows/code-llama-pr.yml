@@ -56,6 +56,7 @@ jobs:
           # this isn't setting the output... I think its too big
           # echo "CONTENT=$($content | convertto-json)" >> $GITHUB_OUTPUT
           $content | convertto-json | Out-File delta.txt
+          echo "outputFile=$((Get-Item delta.txt).FullPath)" >> "$GITHUB_OUTPUT"
           
       - name: Send PR to ollama
         shell: pwsh
@@ -63,9 +64,9 @@ jobs:
         run: |
           $Uri = "http://localhost:11434"
           $model = 'llama3.1'
-          $deltas = Get-Content delta.txt
-          # $prompt = "Review this pull request:`n$deltas"
-          $prompt = "What time is it in New Zealand right now"
+          $deltas = Get-Content ${{ steps.details.outputs.outputFile }}
+          $prompt = "Review this pull request:`n$deltas"
+          # $prompt = "What time is it in New Zealand right now"
           $ErrorActionPreference = 'continue'
           $VerbosePreference = 'continue'
 
@@ -112,6 +113,7 @@ jobs:
 
           $comment = ($response.content | ConvertFrom-Json).response
           $comment | convertto-json | Out-File review.txt
+          echo "outputFile=$((Get-Item review.txt).FullPath)" >> "$GITHUB_OUTPUT"
                 
       - name: Comment on PR with results
         uses: actions/github-script@v6
@@ -123,7 +125,7 @@ jobs:
             const path = require('path');
       
             // Define the file path
-            const filePath = path.join(process.env.GITHUB_WORKSPACE, 'review.txt');
+            const filePath = '${{ steps.review.outputs.outputFile }}';
       
             // Read the content from the file
             let output;
