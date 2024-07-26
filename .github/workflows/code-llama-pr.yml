@@ -52,8 +52,20 @@ jobs:
               $content += "`n"
           }
     
-          echo "content=""$content""" >> $GITHUB_OUTPUT
           Write-Warning "Content to send:`n$content"
+          echo "content=$content" >> $GITHUB_OUTPUT
+          
+      - name: debug
+        shell: pwsh
+        run: write-verbose "This is the content:`n${{ steps.details.outputs.content }}"
+
+      - name: Set color
+        id: color-selector
+        run: echo "SELECTED_COLOR=green" >> "$GITHUB_OUTPUT"
+      - name: Get color
+        env:
+          SELECTED_COLOR: ${{ steps.color-selector.outputs.SELECTED_COLOR }}
+        run: echo "The selected color is $SELECTED_COLOR"        
           
       - name: Send PR to ollama
         shell: pwsh
