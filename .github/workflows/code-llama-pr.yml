@@ -48,13 +48,10 @@ jobs:
           # Get PR details
           $pr_url = "https://api.github.com/repos/$owner/$repo/pulls/$pr_number"
           $pr_response = Invoke-RestMethod -Uri $pr_url -Headers $headers
-          $pr_body = $pr_response.body
-          Write-Warning "Found the details:`n$pr_body"
           
           # Get PR files
           $files_url = "$($pr_response.url)/files"
           $files_response = Invoke-RestMethod -Uri $files_url -Headers $headers -verbose
-          Write-Warning "Found the files:`n$files_response"
     
           $content = "PR Details:`n"
           $content += "Title: $($pr_response.title)`n"
@@ -68,8 +65,7 @@ jobs:
               $content += "`n"
           }
     
-          echo "content=$pr_body" >> "$GITHUB_OUTPUT"          
-          # echo "content=$content" >> "$GITHUB_OUTPUT"          
+          echo "content=$content" >> $GITHUB_OUTPUT
           Write-warning "Content to send:`n$content"
           
       - name: Send PR to ollama
@@ -125,7 +121,7 @@ jobs:
           $response = Invoke-WebRequest @splat -Uri "$baseUri/generate"
 
           $comment = ($response.content | ConvertFrom-Json).response
-          echo "comment=$comment" >> "$GITHUB_OUTPUT"
+          echo "comment=$comment" >> $GITHUB_OUTPUT
                 
       - name: Comment on PR with results
         uses: actions/github-script@v6
