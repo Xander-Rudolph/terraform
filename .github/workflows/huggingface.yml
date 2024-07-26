@@ -1,0 +1,25 @@
+name: Download model
+
+on:
+  push:
+
+jobs:
+  dlmodel:
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Hugging Face transformers
+        run: |
+          python -m ensurepip
+          python -m pip install --upgrade pip
+          python -m pip install transformers
+
+      - name: Authenticate with Hugging Face
+        run: |
+          huggingface-cli login --token ${{ secrets.HUGGING_FACE_TOKEN }}
+
+      - name: Download Meta-Llama-3.1-405B model
+        run: huggingface-cli repo download meta-llama/Meta-Llama-3.1-405B --local-dir ./llama_models
