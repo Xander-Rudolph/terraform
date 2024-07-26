@@ -68,8 +68,9 @@ jobs:
               $content += "`n"
           }
     
-          echo "content=$content" >> "$GITHUB_OUTPUT"          
-          Write-warning "Content to send:`n$prompt"
+          echo "content=$pr_body" >> "$GITHUB_OUTPUT"          
+          # echo "content=$content" >> "$GITHUB_OUTPUT"          
+          Write-warning "Content to send:`n$content"
           
       - name: Send PR to ollama
         shell: pwsh
@@ -137,19 +138,25 @@ jobs:
             \`\`\`
             ${{ steps.review.outputs.comment }}
             \`\`\`
-      
-            
+        
             *Pusher: @${{ github.actor }}, Workflow: \`${{ github.workflow }}\`*`;
       
-            // Check if comment already exists with tag
-            const existingComment = await github.rest.issues.listComments({
+            // Fetch existing comments
+            const response = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               headers: {
                 accept: 'application/vnd.github.v3+json'
               }
-            }).data.find(comment => comment.body.startsWith('<!-- pr-review -->'));
+            });
+            
+            // Log the response to check the structure
+            console.log(response);
+      
+            // Ensure data is defined
+            const comments = response.data || [];
+            const existingComment = comments.find(comment => comment.body.startsWith('<!-- pr-review -->'));
       
             if (existingComment) {
               // Update existing comment
