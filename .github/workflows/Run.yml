@@ -1,12 +1,13 @@
 name: Run Pipeline
 
 on:
-  push:
-    branches: 
-      - '**'
-  pull_request:
-    branches: 
-      - '**'
+  workflow_dispatch:
+  # push:
+  #   branches: 
+  #     - '**'
+  # pull_request:
+  #   branches: 
+  #     - '**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

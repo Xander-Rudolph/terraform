@@ -1,0 +1,17 @@
+name: LLM PR Review
+
+on:
+  pull_request:
+      types: [opened, synchronize]
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  contents: read
+  
+jobs:
+  review-pr:
+    uses: xander-rudolph/.github/.github/workflows/ollama-pr.yml@main
+    secrets: inherit
+    with:
+      model: llama3.1
