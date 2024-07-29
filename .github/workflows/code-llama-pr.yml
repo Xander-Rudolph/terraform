@@ -13,3 +13,5 @@ jobs:
   review-pr:
     uses: xander-rudolph/.github/.github/workflows/ollama-pr.yml@main
     secrets: inherit
+    with:
+      model: llama3.1
