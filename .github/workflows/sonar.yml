@@ -49,7 +49,6 @@ jobs:
             -Dsonar.host.url=http://host.docker.internal:9000
             -Dsonar.login=$SONAR_TOKEN
             -Dsonar.language=terraform
-            {${{ env.COVERAGE_ENABLED }} == 'true' && '-Dsonar.coverage.exclusions=**/*' || ''}
 
       - name: Upload SonarQube results to artifact
         uses: actions/upload-artifact@v3

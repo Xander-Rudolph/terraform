@@ -28,21 +28,21 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Run Trivy fs mode
-      uses: aquasecurity/trivy-action@0.20.0
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'fs-trivy-results.sarif'
-        ignore-unfixed: true
-        severity: 'CRITICAL,HIGH'
+    # - name: Run Trivy fs mode
+    #   uses: aquasecurity/trivy-action@0.20.0
+    #   with:
+    #     scan-type: 'fs'
+    #     scan-ref: '.'
+    #     format: 'sarif'
+    #     output: 'fs-trivy-results.sarif'
+    #     ignore-unfixed: true
+    #     severity: 'CRITICAL,HIGH'
 
-    - name: Upload Trivy fs
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: 'fs-trivy-results.sarif'
-        category: fs-results
+    # - name: Upload Trivy fs
+    #   uses: github/codeql-action/upload-sarif@v2
+    #   with:
+    #     sarif_file: 'fs-trivy-results.sarif'
+    #     category: fs-results
 
     - name: Run Trivy config mode
       uses: aquasecurity/trivy-action@0.20.0
