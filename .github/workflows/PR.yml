@@ -21,90 +21,18 @@ jobs:
       model: deepseek-coder-v2
 
   trivy:
-    name: Trivy scan
-    runs-on: ubuntu-20.04
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Run Trivy config mode
-      uses: aquasecurity/trivy-action@0.20.0
-      with:
-        scan-type: 'config'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'config-trivy-results.sarif'
-        ignore-unfixed: true
-        severity: 'CRITICAL,HIGH'
-
-    - name: Upload Trivy config
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: 'config-trivy-results.sarif'
-        category: config-results
-
-    - name: Run Trivy fs mode
-      uses: aquasecurity/trivy-action@0.20.0
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'fs-trivy-results.sarif'
-        ignore-unfixed: true
-        severity: 'CRITICAL,HIGH'
-
-    - name: Upload Trivy fs
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: 'fs-trivy-results.sarif'
-        category: fs-results
+    uses: xander-rudolph/.github/.github/workflows/trivy-scan.yml@main
+    secrets: inherit
+    with:
+      scanPath: .
         
   sonar:
-    runs-on: ubuntu-latest
-    services:
-      sonarqube:
-        image: sonarqube:latest
-        ports:
-          - 9000:9000
-        options: >-
-          --health-cmd="curl -s http://localhost:9000/api/system/status | grep -q 'UP'"
-          --health-interval=30s
-          --health-timeout=10s
-          --health-retries=5
+    uses: xander-rudolph/.github/.github/workflows/sonar-scan.yml@main
+    secrets: inherit
+    with:
+      scanPath: .
+        
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK # SonarQube scanner requires Java
-        uses: actions/setup-java@v2
-        with:
-          java-version: '17'
-          distribution: 'adopt'
-
-      - name: Configure SonarQube Project
-        id: sonar-config
-        shell: pwsh
-        run: |
-          $PROJECT_KEY=${{ github.repository }}
-          curl -u admin:admin -X POST "http://localhost:9000/api/projects/create?name=$PROJECT_KEY&project=$PROJECT_KEY"
-
-          $TOKEN=(curl -u admin:admin -X POST -d "name=$($PROJECT_KEY)_token" "http://localhost:9000/api/user_tokens/generate" | ConvertFrom-json).token
-          echo "SONAR_TOKEN=$TOKEN" >> $env:GITHUB_OUTPUT
-  
-      - name: Run SonarQube - terraform
-        env:
-          SONAR_TOKEN: ${{ steps.sonar-config.outputs.SONAR_TOKEN }}
-          COVERAGE_ENABLED: true
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Required for PR decoration
-        uses: SonarSource/sonarqube-scan-action@v3.0.0
-        with:
-          args: >
-            -Dsonar.projectKey=${{ github.repository }}
-            -Dsonar.sources=.
-            -Dsonar.host.url=http://host.docker.internal:9000
-            -Dsonar.login=$SONAR_TOKEN
-            -Dsonar.language=terraform
 
       # - name: Upload SonarQube results to artifact
       #   uses: actions/upload-artifact@v3
