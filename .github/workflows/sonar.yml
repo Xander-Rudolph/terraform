@@ -42,6 +42,8 @@ jobs:
 
       - name: Run SonarQube Scanner
         env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          COVERAGE_ENABLED: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Required for PR decoration
         uses: SonarSource/sonarqube-scan-action@master
         with:
@@ -49,9 +51,9 @@ jobs:
             -Dsonar.projectKey=my-project-key
             -Dsonar.sources=.
             -Dsonar.host.url=http://host.docker.internal:9000  # Assumes SonarQube is on localhost:9000
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }} 
-            ${{ env.COVERAGE_ENABLED }} == 'true' && '-Dsonar.coverage.exclusions=**/*' || ''}
+            -Dsonar.login=$SONAR_TOKEN
             -Dsonar.language=terraform
+            {${{ env.COVERAGE_ENABLED }} == 'true' && '-Dsonar.coverage.exclusions=**/*' || ''}
 
       - name: Save scan results
         run: |
