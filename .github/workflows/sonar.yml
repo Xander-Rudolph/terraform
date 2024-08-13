@@ -1,11 +1,9 @@
-name: SonarQube PR Review
+name: SonarQube Scan with Local Server
 
 on:
-  push:
-    branches:
-        - main
   pull_request:
-    types: [opened, synchronize]
+    branches:
+      - main
 
 jobs:
   review-pr:
@@ -16,9 +14,9 @@ jobs:
         ports:
           - 9000:9000
         options: >-
-          --health-cmd="curl -f http://localhost:9000/api/system/health" 
-          --health-interval=30s 
-          --health-timeout=10s 
+          --health-cmd="curl -f http://localhost:9000/api/system/health"
+          --health-interval=30s
+          --health-timeout=10s
           --health-retries=5
 
     steps:
@@ -26,56 +24,69 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Wait for SonarQube to be ready
-        shell: pwsh
         run: |
-          Write-Host "Waiting for SonarQube to be ready..."
-          while (-not (Invoke-WebRequest -Uri "http://localhost:9000/api/system/health" -UseBasicParsing)) {
-            Start-Sleep -Seconds 5
-            Write-Host "."
-          }
-          Write-Host "SonarQube is ready."
+          until curl -s http://localhost:9000/api/system/status | grep -q '"status":"UP"'; do
+            echo "Waiting for SonarQube to start..."
+            sleep 10
+          done
 
-    #TODO: Add sonar installer and source path input
-
-      - name: Run SonarQube Analysis
-        shell: pwsh
+      - name: Run SonarQube Scanner
+        env:
+          SONARQUBE_URL: localhost:9000
+          YOUR_REPO: ${{ github.workspace }}
+          COVERAGE_ENABLED: 'true' # Set to 'false' to disable code coverage
         run: |
-          $env:SONAR_SCANNER_OPTS = "-Dsonar.login=admin -Dsonar.password=admin"
-          sonar-scanner `
-            -Dsonar.projectKey=${{ github.repository }} `
-            -Dsonar.sources=${{ inputs.sourcePath }} `
-            -Dsonar.host.url=http://localhost:9000 `
-            -Dsonar.pullrequest.key=${{ github.event.number }} `
-            -Dsonar.pullrequest.branch=${{ github.head_ref }} `
-            -Dsonar.pullrequest.base=${{ github.base_ref }}
+          docker run \
+            --rm \
+            --network container:sonarqube \
+            -e SONAR_HOST_URL="http://${SONARQUBE_URL}" \
+            -e COVERAGE_ENABLED="${COVERAGE_ENABLED}" \
+            -v "${YOUR_REPO}:/usr/src" \
+            sonarsource/sonar-scanner-cli \
+            -Dsonar.projectKey=my-project-key \
+            -Dsonar.sources=. \
+            -Dsonar.host.url="http://${SONARQUBE_URL}" \
+            ${COVERAGE_ENABLED:+'-Dsonar.coverage.exclusions=**/*.java'} \
+            -Dsonar.java.binaries=.
 
-      - name: Generate SonarQube Report
-        shell: pwsh
+      - name: Save scan results
         run: |
-          $sonar_url = "http://localhost:9000"
-          $project_key = "$env:GITHUB_REPOSITORY"
-          $response = Invoke-RestMethod -Uri "$sonar_url/api/measures/component_tree?component=$project_key&metricKeys=coverage"
-          $coverage = $response.components | ForEach-Object { $_.measures | Where-Object { $_.metric -eq 'coverage' } | Select-Object -ExpandProperty value }
+          mkdir -p .scannerwork
+          docker cp sonarsource/sonar-scanner-cli:/usr/src/.scannerwork/report-task.txt ./.scannerwork/scan-results.txt
 
-          $md_content = @"
-          # SonarQube Analysis Report
+      - name: Upload SonarQube results to artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sonar-results
+          path: .scannerwork/scan-results.txt
 
-          **Project Key:** $project_key
-          **Coverage:** $coverage%
-          "@
+      # - name: Generate SonarQube Report
+      #   shell: pwsh
+      #   run: |
+      #     $sonar_url = "http://localhost:9000"
+      #     $project_key = "$env:GITHUB_REPOSITORY"
+      #     $response = Invoke-RestMethod -Uri "$sonar_url/api/measures/component_tree?component=$project_key&metricKeys=coverage"
+      #     $coverage = $response.components | ForEach-Object { $_.measures | Where-Object { $_.metric -eq 'coverage' } | Select-Object -ExpandProperty value }
 
-          $md_content | Out-File -FilePath report.md -Encoding utf8
+      #     $md_content = @"
+      #     # SonarQube Analysis Report
 
-      - name: Setup GitHub Pages Branch
-        shell: pwsh
-        run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@github.com'
-          git fetch
-          git checkout gh-pages || git checkout --orphan gh-pages
-          git reset --hard
-          rm -rf *
-          cp ../report.md .
-          git add report.md
-          git commit -m "Update SonarQube report for PR #${{ github.event.number }}"
-          git push origin gh-pages --force
+      #     **Project Key:** $project_key
+      #     **Coverage:** $coverage%
+      #     "@
+
+      #     $md_content | Out-File -FilePath report.md -Encoding utf8
+
+      # - name: Setup GitHub Pages Branch
+      #   shell: pwsh
+      #   run: |
+      #     git config --global user.name 'github-actions'
+      #     git config --global user.email 'github-actions@github.com'
+      #     git fetch
+      #     git checkout gh-pages || git checkout --orphan gh-pages
+      #     git reset --hard
+      #     rm -rf *
+      #     cp ../report.md .
+      #     git add report.md
+      #     git commit -m "Update SonarQube report for PR #${{ github.event.number }}"
+      #     git push origin gh-pages --force
