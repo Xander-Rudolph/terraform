@@ -1,4 +1,4 @@
-name: LLM PR Review
+name: PR Process Complete
 
 on:
   pull_request:
@@ -27,6 +27,38 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Run Trivy config mode
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+        scan-type: 'config'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'config-trivy-results.sarif'
+        ignore-unfixed: true
+        severity: 'CRITICAL,HIGH'
+
+    - name: Upload Trivy config
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'config-trivy-results.sarif'
+        category: config-results
+
+    - name: Run Trivy fs mode
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'fs-trivy-results.sarif'
+        ignore-unfixed: true
+        severity: 'CRITICAL,HIGH'
+
+    - name: Upload Trivy fs
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'fs-trivy-results.sarif'
+        category: fs-results
+        
   sonar:
     runs-on: ubuntu-latest
     services:
