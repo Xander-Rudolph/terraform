@@ -29,11 +29,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # - name: Set up JDK # SonarQube scanner requires Java
-      #   uses: actions/setup-java@v2
-      #   with:
-      #     java-version: '17'
-      #     distribution: 'adopt'
+      - name: Set up JDK # SonarQube scanner requires Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'adopt'
 
       - name: Run SonarQube - terraform
         env:
