@@ -15,9 +15,13 @@ jobs:
         image: sonarqube:latest
         ports:
           - 9000:9000
+          options: >-
+            --health-cmd="curl -s http://localhost:9000/api/system/status | grep -q 'UP'"
+            --health-interval=30s
+            --health-timeout=10s
+            --health-retries=5
         #TODO: this page works on the pod, but itsn't passing the github healthcheck
         # options: >-
-        #   --health-cmd="curl -f http://localhost:9000/api/system/health"
         #   --health-cmd="curl -f http://localhost:9000/api/system/health"
         #   --health-interval=30s
         #   --health-timeout=10s
@@ -34,15 +38,16 @@ jobs:
             sleep 10
           done
 
-      - name: Set up JDK # SonarQube scanner requires Java
-        uses: actions/setup-java@v2
-        with:
-          java-version: '17'
-          distribution: 'adopt'
+      # - name: Set up JDK # SonarQube scanner requires Java
+      #   uses: actions/setup-java@v2
+      #   with:
+      #     java-version: '17'
+      #     distribution: 'adopt'
 
       - name: Run SonarQube Scanner
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          # SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: 0123456
           COVERAGE_ENABLED: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Required for PR decoration
         uses: SonarSource/sonarqube-scan-action@master
