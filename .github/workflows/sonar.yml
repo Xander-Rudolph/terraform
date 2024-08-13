@@ -33,22 +33,19 @@ jobs:
 
       - name: Run SonarQube Scanner
         env:
-          SONARQUBE_URL: localhost:9000
-          YOUR_REPO: ${{ github.workspace }}
           COVERAGE_ENABLED: 'true' # Set to 'false' to disable code coverage
         run: |
           docker run \
             --rm \
-            --network container:sonarqube \
-            -e SONAR_HOST_URL="http://${SONARQUBE_URL}" \
-            -e COVERAGE_ENABLED="${COVERAGE_ENABLED}" \
-            -v "${YOUR_REPO}:/usr/src" \
+            -e SONAR_HOST_URL="http://localhost:9000" \
+            -e COVERAGE_ENABLED="${{ env.COVERAGE_ENABLED }}" \
+            -v "${{ github.workspace }}:/usr/src" \
             sonarsource/sonar-scanner-cli \
             -Dsonar.projectKey=my-project-key \
             -Dsonar.sources=. \
-            -Dsonar.host.url="http://${SONARQUBE_URL}" \
-            ${COVERAGE_ENABLED:+'-Dsonar.coverage.exclusions=**/*.java'} \
-            -Dsonar.java.binaries=.
+            -Dsonar.host.url="http://localhost:9000" \
+            ${COVERAGE_ENABLED:+'-Dsonar.coverage.exclusions=**/*'} \
+            -Dsonar.language=terraform
 
       - name: Save scan results
         run: |
