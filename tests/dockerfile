@@ -1,0 +1,11 @@
+# Using an outdated base image
+FROM ubuntu:18.04
+
+# Installing packages without version pinning
+RUN apt-get update && apt-get install -y curl git
+
+# Running as root (bad practice)
+USER root
+
+COPY . /app
+WORKDIR /app

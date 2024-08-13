@@ -1,0 +1,71 @@
+name: PR Process Complete
+
+on:
+  pull_request:
+      types: [opened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+    
+# These permissions are needed for the review-PR to use github_token
+permissions:
+  pull-requests: write
+  contents: read
+  
+jobs:
+  llm-review:
+    uses: xander-rudolph/.github/.github/workflows/ollama-pr.yml@main
+    secrets: inherit
+    with:
+      model: deepseek-coder-v2
+
+  trivy:
+    uses: xander-rudolph/.github/.github/workflows/trivy-scan.yml@main
+    secrets: inherit
+    with:
+      scanPath: .
+        
+  sonar:
+    uses: xander-rudolph/.github/.github/workflows/sonar-scan.yml@main
+    secrets: inherit
+    with:
+      scanPath: .
+        
+
+
+      # - name: Upload SonarQube results to artifact
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: sonar-results
+      #     path: .scannerwork/scan-results.txt
+          # - name: Generate SonarQube Report
+      #   shell: pwsh
+      #   run: |
+      #     $sonar_url = "http://localhost:9000"
+      #     $project_key = "$env:GITHUB_REPOSITORY"
+      #     $response = Invoke-RestMethod -Uri "$sonar_url/api/measures/component_tree?component=$project_key&metricKeys=coverage"
+      #     $coverage = $response.components | ForEach-Object { $_.measures | Where-Object { $_.metric -eq 'coverage' } | Select-Object -ExpandProperty value }
+
+      #     $md_content = @"
+      #     # SonarQube Analysis Report
+
+      #     **Project Key:** $project_key
+      #     **Coverage:** $coverage%
+      #     "@
+
+      #     $md_content | Out-File -FilePath report.md -Encoding utf8
+
+      # - name: Setup GitHub Pages Branch
+      #   shell: pwsh
+      #   run: |
+      #     git config --global user.name 'github-actions'
+      #     git config --global user.email 'github-actions@github.com'
+      #     git fetch
+      #     git checkout gh-pages || git checkout --orphan gh-pages
+      #     git reset --hard
+      #     rm -rf *
+      #     cp ../report.md .
+      #     git add report.md
+      #     git commit -m "Update SonarQube report for PR #${{ github.event.number }}"
+      #     git push origin gh-pages --force
