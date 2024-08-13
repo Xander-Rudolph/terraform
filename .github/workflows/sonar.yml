@@ -7,6 +7,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
 jobs:
   review-pr:
     runs-on: ubuntu-latest
@@ -31,12 +35,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Wait for SonarQube to be ready
-        run: |
-          until curl -s http://localhost:9000/api/system/status | grep -q '"status":"UP"'; do
-            echo "Waiting for SonarQube to start..."
-            sleep 10
-          done
+      # - name: Wait for SonarQube to be ready
+      #   run: |
+      #     until curl -s http://localhost:9000/api/system/status | grep -q '"status":"UP"'; do
+      #       echo "Waiting for SonarQube to start..."
+      #       sleep 10
+      #     done
 
       # - name: Set up JDK # SonarQube scanner requires Java
       #   uses: actions/setup-java@v2
@@ -55,15 +59,10 @@ jobs:
           args: >
             -Dsonar.projectKey=my-project-key
             -Dsonar.sources=.
-            -Dsonar.host.url=http://host.docker.internal:9000  # Assumes SonarQube is on localhost:9000
+            -Dsonar.host.url=http://host.docker.internal:9000
             -Dsonar.login=$SONAR_TOKEN
             -Dsonar.language=terraform
             {${{ env.COVERAGE_ENABLED }} == 'true' && '-Dsonar.coverage.exclusions=**/*' || ''}
-
-      - name: Save scan results
-        run: |
-          mkdir -p .scannerwork
-          docker cp sonarsource:/usr/src/.scannerwork/report-task.txt ./.scannerwork/scan-results.txt
 
       - name: Upload SonarQube results to artifact
         uses: actions/upload-artifact@v3
